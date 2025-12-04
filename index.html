@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prathmesh Portfolio</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+    <style>
+        /* Custom Styles & Animations */
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden; /* Prevent scrolling on the body */
+            user-select: none; /* Feel more like an app */
+        }
+
+        /* Desktop Background */
+        #desktop {
+            /* Updated to Itachi Uchiha Moon Background */
+            background: url('download.jpg') no-repeat center center/cover;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Glassmorphism Utilities */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .glass-dark {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        /* Desktop Icons */
+        .desktop-icon {
+            transition: all 0.2s;
+            cursor: pointer;
+            width: 80px;
+        }
+        .desktop-icon:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+        }
+        .desktop-icon:active {
+            transform: scale(0.95);
+        }
+
+        /* Windows */
+        .window {
+            position: absolute;
+            background: #f8fafc;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-width: 300px;
+            min-height: 200px;
+            transition: opacity 0.2s, transform 0.2s;
+            resize: both; /* Allow resizing */
+        }
+        
+        .window.maximized {
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: calc(100% - 48px) !important; /* Subtract taskbar height */
+            border-radius: 0;
+            resize: none;
+        }
+
+        .window-header {
+            cursor: grab;
+            user-select: none;
+        }
+        .window-header:active {
+            cursor: grabbing;
+        }
+
+        /* Terminal Specifics */
+        .terminal-body {
+            font-family: 'JetBrains Mono', monospace;
+            overflow-y: auto;
+        }
+        .blink {
+            animation: blinker 1s linear infinite;
+        }
+        @keyframes blinker {
+            50% { opacity: 0; }
+        }
+
+        /* Taskbar */
+        #taskbar {
+            z-index: 9999;
+        }
+        .taskbar-item {
+            transition: all 0.2s;
+        }
+        .taskbar-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .taskbar-item.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-bottom: 3px solid #3b82f6;
+        }
+
+        /* Start Menu */
+        #start-menu {
+            bottom: 60px;
+            left: 10px;
+            transition: transform 0.2s ease-in-out, opacity 0.2s;
+            transform-origin: bottom left;
+        }
+        #start-menu.hidden {
+            display: none; /* Fallback */
+        }
+        #start-menu.closed {
+            transform: scale(0.95) translateY(20px);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Boot Screen */
+        #boot-screen {
+            z-index: 10000;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-800">
+
+    <!-- Boot Screen -->
+    <div id="boot-screen" class="fixed inset-0 bg-black text-green-500 font-mono p-10 flex flex-col justify-start items-start text-lg overflow-hidden">
+        <div id="boot-text"></div>
+    </div>
+
+    <!-- Desktop Environment -->
+    <div id="desktop" class="hidden">
+        
+        <!-- Desktop Icons Grid -->
+        <div class="grid grid-cols-1 gap-4 p-4 absolute top-0 left-0 h-full content-start flex-wrap w-auto">
+            
+            <!-- Icon: About Me -->
+            <div onclick="openWindow('about')" class="desktop-icon flex flex-col items-center p-2 text-white text-shadow-md">
+                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile" class="w-12 h-12 mb-1 drop-shadow-md">
+                <span class="text-xs font-medium bg-black/30 px-2 rounded">About Me</span>
+            </div>
+
+            <!-- Icon: Projects -->
+            <div onclick="openWindow('projects')" class="desktop-icon flex flex-col items-center p-2 text-white">
+                <img src="https://cdn-icons-png.flaticon.com/512/3767/3767084.png" alt="Folder" class="w-12 h-12 mb-1 drop-shadow-md">
+                <span class="text-xs font-medium bg-black/30 px-2 rounded">Projects</span>
+            </div>
+
+            <!-- Icon: Python Terminal -->
+            <div onclick="openWindow('terminal')" class="desktop-icon flex flex-col items-center p-2 text-white">
+                <div class="w-12 h-12 mb-1 bg-gray-800 rounded-lg flex items-center justify-center border border-gray-600 shadow-lg">
+                    <span class="text-green-500 font-bold font-mono">>_</span>
+                </div>
+                <span class="text-xs font-medium bg-black/30 px-2 rounded">Terminal</span>
+            </div>
+
+            <!-- Icon: Contact -->
+            <div onclick="openWindow('contact')" class="desktop-icon flex flex-col items-center p-2 text-white">
+                <!-- Updated to Gmail Logo -->
+                <img src="https://cdn-icons-png.flaticon.com/512/732/732200.png" alt="Gmail" class="w-12 h-12 mb-1 drop-shadow-md">
+                <span class="text-xs font-medium bg-black/30 px-2 rounded">Contact</span>
+            </div>
+
+             <!-- Icon: Browser -->
+             <div onclick="openWindow('browser')" class="desktop-icon flex flex-col items-center p-2 text-white">
+                <!-- Updated to Colored Ulaa-style (Blue Shield) - Removed white filter -->
+                <img src="https://cdn-icons-png.flaticon.com/512/3297/3297383.png" alt="Ulaa Browser" class="w-12 h-12 mb-1 drop-shadow-md">
+                <span class="text-xs font-medium bg-black/30 px-2 rounded">Browser</span>
+            </div>
+
+        </div>
+
+        <!-- Windows Area (Where windows will be appended) -->
+        <div id="windows-container" class="absolute inset-0 pointer-events-none">
+            <!-- Windows are injected here by JS -->
+        </div>
+
+        <!-- Start Menu -->
+        <div id="start-menu" class="absolute w-80 glass-dark rounded-xl shadow-2xl p-4 closed z-50 flex flex-col gap-4 text-white">
+            <div class="flex items-center gap-3 border-b border-gray-700 pb-4">
+                <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-lg font-bold">JD</div>
+                <div>
+                    <h3 class="font-bold">Prathmesh Kale</h3>
+                    <p class="text-xs text-gray-400">Python Developer</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-4 gap-2">
+                <div onclick="openWindow('about'); toggleStartMenu()" class="hover:bg-white/10 p-2 rounded flex flex-col items-center cursor-pointer">
+                    <i class="fas fa-user mb-1 text-blue-400"></i>
+                    <span class="text-[10px]">About</span>
+                </div>
+                <div onclick="openWindow('projects'); toggleStartMenu()" class="hover:bg-white/10 p-2 rounded flex flex-col items-center cursor-pointer">
+                    <i class="fas fa-folder mb-1 text-yellow-400"></i>
+                    <span class="text-[10px]">Work</span>
+                </div>
+                <div onclick="openWindow('terminal'); toggleStartMenu()" class="hover:bg-white/10 p-2 rounded flex flex-col items-center cursor-pointer">
+                    <i class="fas fa-terminal mb-1 text-green-400"></i>
+                    <span class="text-[10px]">Term</span>
+                </div>
+                <div onclick="openWindow('contact'); toggleStartMenu()" class="hover:bg-white/10 p-2 rounded flex flex-col items-center cursor-pointer">
+                    <i class="fas fa-envelope mb-1 text-red-400"></i>
+                    <span class="text-[10px]">Mail</span>
+                </div>
+            </div>
+            <div class="mt-auto pt-2 border-t border-gray-700 flex justify-between items-center">
+                <button onclick="window.location.reload()" class="flex items-center gap-2 hover:bg-red-500/20 px-3 py-1 rounded text-red-300 transition text-sm">
+                    <i class="fas fa-power-off"></i> Restart
+                </button>
+            </div>
+        </div>
+
+        <!-- Taskbar -->
+        <div id="taskbar" class="absolute bottom-0 w-full h-12 glass-dark flex items-center px-4 justify-between">
+            <div class="flex items-center gap-2">
+                <!-- Start Button -->
+                <button onclick="toggleStartMenu()" class="p-2 rounded hover:bg-white/10 transition text-blue-400 text-xl">
+                    <i class="fab fa-windows"></i>
+                </button>
+                
+                <!-- Search Bar (Visual Only) -->
+                <div class="hidden md:flex items-center bg-white/10 rounded-full px-3 py-1 ml-2">
+                    <i class="fas fa-search text-gray-400 text-xs"></i>
+                    <input type="text" placeholder="Type to search..." class="bg-transparent border-none outline-none text-gray-300 text-xs ml-2 w-32">
+                </div>
+            </div>
+
+            <!-- Open Apps Dock -->
+            <div id="taskbar-apps" class="flex items-center gap-1 absolute left-1/2 transform -translate-x-1/2 h-full">
+                <!-- Apps added dynamically -->
+            </div>
+
+            <!-- Tray -->
+            <div class="flex items-center gap-3 text-white text-xs">
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-volume-up"></i>
+                <div id="clock" class="flex flex-col items-end leading-tight">
+                    <span id="time" class="font-bold">12:00 PM</span>
+                    <span id="date" class="text-[10px] text-gray-400">12/05/2023</span>
+                </div>
+                <div class="w-1 h-8 border-l border-gray-600 ml-1"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Templates for Window Content -->
+    <template id="tpl-about">
+        <div class="p-8 h-full overflow-y-auto bg-white">
+            <div class="flex items-center gap-6 mb-8">
+                <div class="w-32 h-32 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-4xl text-white font-bold shadow-lg">
+                    PK
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">Prathmesh kale</h1>
+                    <p class="text-lg text-blue-600">Computer Engineering Student</p>
+                    <div class="flex gap-2 mt-3">
+                        <span class="px-2 py-1 bg-gray-100 rounded text-xs border border-gray-300">Python</span>
+                        <span class="px-2 py-1 bg-gray-100 rounded text-xs border border-gray-300">SQL</span>
+                        <span class="px-2 py-1 bg-gray-100 rounded text-xs border border-gray-300">Software Tester</span>
+                        <span class="px-2 py-1 bg-gray-100 rounded text-xs border border-gray-300">Azure</span>
+                        <span class="px-2 py-1 bg-gray-100 rounded text-xs border border-gray-300">PowerBi</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="prose max-w-none text-gray-600">
+                <h3 class="text-xl font-bold text-gray-800 mb-2">About</h3>
+                <p class="mb-4">
+                    I am a versatile technical professional bridging the gap between Quality Assurance and Data Analytics. With a strong foundation in Manual Testing, I bring a detail-oriented approach to software quality, ensuring accuracy, reliability, and excellent user experiences.
+Beyond traditional testing, I leverage technical expertise in Python and SQL to validate backend data, automate logic, and drive efficiency. I am passionate about transforming raw data into actionable insights, utilizing Microsoft Power BI to build visualizations that aid in strategic decision-making.
+My experience extends to modern cloud environments, with practical knowledge of Microsoft Azure, allowing me to contribute effectively to cloud-integrated projects. I thrive in dynamic roles where I can combine my analytical mindset with technical proficiency to deliver high-quality, data-driven solutions.
+                </p>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Experience</h3>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li>
+                        <strong>Cloud Intern @ Placify Technologies</strong> <br>
+                        Work as team Member of developers building cloud based Platforms on Azure
+                    </li>
+                    <li>
+                        <strong>Web Developer Intern @ Insource Technologies</strong><br>
+                        Developed and test 5+ client websites in teams
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </template>
+
+    <template id="tpl-projects">
+        <div class="flex h-full bg-gray-50">
+            <!-- Sidebar -->
+            <div class="w-48 bg-gray-100 border-r border-gray-200 p-2 hidden md:block">
+                <div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 pl-2">Favorites</div>
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2 p-2 bg-blue-100 text-blue-700 rounded cursor-pointer">
+                        <i class="fas fa-desktop"></i> Desktop
+                    </div>
+                </div>
+            </div>
+            <!-- Content -->
+            <div class="flex-1 p-4 overflow-y-auto">
+                <div class="border-b border-gray-200 pb-2 mb-4 flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-gray-700">C:\Users\Prathmesh\Projects</h2>
+                    <div class="flex gap-2">
+                        <button class="p-1 hover:bg-gray-200 rounded"><i class="fas fa-list"></i></button>
+                        <button class="p-1 hover:bg-gray-200 rounded"><i class="fas fa-th-large"></i></button>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <!-- Specific projects removed as requested -->
+
+                    <!-- View All Link -->
+                    <a href="https://github.com/Prathya07?tab=repositories" target="_blank" class="block group">
+                        <div class="bg-gray-50 p-4 rounded border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 transition cursor-pointer h-full flex flex-col items-center justify-center text-gray-500 hover:text-blue-600">
+                            <i class="fab fa-github text-5xl mb-3 group-hover:scale-110 transition"></i>
+                            <h3 class="font-bold">View All Projects</h3>
+                            <p class="text-xs mt-1">Check out more on GitHub</p>
+                        </div>
+                    </a>
+
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="tpl-terminal">
+        <div class="bg-[#1e1e1e] h-full text-gray-300 font-mono text-sm p-4 flex flex-col" onclick="document.getElementById('term-input').focus()">
+            <div class="mb-2">Python 3.9.5 (default, May 3 2021) [GCC 7.5.0] on linux</div>
+            <div class="mb-2">Type <span class="text-yellow-400">'help'</span> to see available commands.</div>
+            <div id="terminal-output" class="flex-1 overflow-y-auto whitespace-pre-wrap"></div>
+            <div class="flex items-center mt-2">
+                <span class="text-green-500 mr-2">➜</span>
+                <span class="text-blue-400 mr-2">~</span>
+                <input type="text" id="term-input" class="bg-transparent border-none outline-none text-white flex-1 font-mono" autocomplete="off" autofocus>
+            </div>
+        </div>
+    </template>
+
+    <template id="tpl-contact">
+        <div class="p-8 bg-white h-full flex flex-col items-center justify-center">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Get in Touch</h2>
+            <form id="contact-form" class="w-full max-w-sm space-y-4" onsubmit="handleContactSubmit(event)">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" name="email" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 p-2 border" placeholder="you@example.com">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Message</label>
+                    <textarea name="message" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 p-2 border" rows="3"></textarea>
+                </div>
+                <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all">
+                    Send Message
+                </button>
+            </form>
+            <div class="mt-8 flex gap-4 text-2xl text-gray-600">
+                <!-- Social Links -->
+                <a href="https://github.com/Prathya07" target="_blank" class="hover:text-blue-500"><i class="fab fa-github"></i></a>
+                <a href="https://www.linkedin.com/in/prathmesh-kale-2698802aa?utm_source=share_via&utm_content=profile&utm_medium=member_android" target="_blank" class="hover:text-blue-700"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </div>
+    </template>
+
+    <template id="tpl-browser">
+         <div class="flex flex-col h-full bg-white">
+            <!-- Browser Chrome -->
+            <div class="bg-gray-100 border-b border-gray-300 p-2 flex items-center gap-2">
+                <div class="flex gap-1">
+                    <button class="hover:bg-gray-200 p-1 rounded text-gray-500"><i class="fas fa-arrow-left"></i></button>
+                    <button class="hover:bg-gray-200 p-1 rounded text-gray-500"><i class="fas fa-arrow-right"></i></button>
+                    <button class="hover:bg-gray-200 p-1 rounded text-gray-500"><i class="fas fa-redo"></i></button>
+                </div>
+                <div class="flex-1 bg-white border border-gray-300 rounded-full px-3 py-1 text-xs text-gray-600 flex items-center">
+                    <i class="fas fa-lock text-green-500 mr-2"></i>
+                    <input type="text" value="https://www.google.com" class="w-full outline-none text-gray-600 text-xs" readonly>
+                </div>
+            </div>
+            <!-- Browser Content (Google Clone) -->
+            <div class="flex-1 bg-white flex flex-col items-center justify-center relative">
+                <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="Google" class="w-[272px] h-[92px] mb-8">
+                
+                <div class="w-full max-w-md px-4">
+                    <div class="flex items-center border border-gray-200 hover:shadow-md rounded-full px-4 py-2 transition-shadow group focus-within:shadow-md">
+                        <i class="fas fa-search text-gray-400 mr-3"></i>
+                        <input type="text" id="google-search-input" class="flex-1 outline-none text-gray-700" onkeydown="if(event.key === 'Enter') googleSearch()">
+                        <img src="https://www.gstatic.com/images/branding/googlemic/2x/googlemic_color_24dp.png" class="h-6 ml-3 cursor-pointer" alt="Voice">
+                    </div>
+                </div>
+
+                <div class="mt-8 flex gap-3">
+                    <button onclick="googleSearch()" class="bg-[#f8f9fa] border border-[#f8f9fa] hover:border-[#dadce0] hover:shadow-sm px-4 py-2 text-sm text-[#3c4043] rounded font-medium">Google Search</button>
+                    <button class="bg-[#f8f9fa] border border-[#f8f9fa] hover:border-[#dadce0] hover:shadow-sm px-4 py-2 text-sm text-[#3c4043] rounded font-medium">I'm Feeling Lucky</button>
+                </div>
+
+                <div class="absolute bottom-4 text-xs text-gray-400">
+                    * Opens in new tab due to security restrictions
+                </div>
+            </div>
+         </div>
+    </template>
+
+    <script>
+        // --- System State ---
+        let highestZIndex = 100;
+        let windows = {}; // Store window instances
+        
+        // --- Boot Sequence ---
+        const bootText = [
+            "Initializing BIOS...",
+            "Checking Memory... 32GB OK",
+            "Loading CPU Microcode...",
+            "Detecting Primary Master... SSD 1TB",
+            "Booting DevOS v1.0...",
+            "Mounting File System...",
+            "Starting Graphical Interface...",
+            "Welcome, User."
+        ];
+
+        async function runBootSequence() {
+            const screen = document.getElementById('boot-text');
+            for (let line of bootText) {
+                const p = document.createElement('div');
+                p.textContent = `> ${line}`;
+                screen.appendChild(p);
+                await new Promise(r => setTimeout(r, 400));
+            }
+            await new Promise(r => setTimeout(r, 800));
+            document.getElementById('boot-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('boot-screen').remove();
+                document.getElementById('desktop').classList.remove('hidden');
+                // Auto open 'About'
+                openWindow('about');
+            }, 500);
+        }
+
+        // --- Window Manager ---
+        function openWindow(appId) {
+            // If already open, just bring to front
+            if (windows[appId]) {
+                focusWindow(appId);
+                if (windows[appId].element.style.display === 'none') {
+                     windows[appId].element.style.display = 'flex';
+                     updateTaskbar(appId, true);
+                }
+                return;
+            }
+
+            const container = document.getElementById('windows-container');
+            const template = document.getElementById(`tpl-${appId}`);
+            
+            if (!template) return;
+
+            // Create Window Element
+            const win = document.createElement('div');
+            win.className = 'window glass pointer-events-auto flex flex-col';
+            win.id = `win-${appId}`;
+            
+            // Dimensions
+            const width = appId === 'terminal' ? 600 : 800;
+            const height = appId === 'terminal' ? 400 : 500;
+            win.style.width = `${width}px`;
+            win.style.height = `${height}px`;
+
+            // Positioning
+            if (appId === 'about') {
+                // Center the 'About' window specifically
+                const left = (window.innerWidth - width) / 2;
+                const top = (window.innerHeight - height) / 2;
+                win.style.left = `${Math.max(0, left)}px`;
+                win.style.top = `${Math.max(0, top)}px`;
+            } else {
+                // Cascade other windows
+                win.style.left = `${50 + (Object.keys(windows).length * 30)}px`;
+                win.style.top = `${50 + (Object.keys(windows).length * 30)}px`;
+            }
+            
+            win.style.zIndex = ++highestZIndex;
+
+            // Header
+            const title = appId.charAt(0).toUpperCase() + appId.slice(1);
+            const iconClass = getIconForApp(appId);
+            
+            win.innerHTML = `
+                <div class="window-header h-10 bg-gray-100/90 border-b border-gray-200 flex items-center justify-between px-3 rounded-t-lg" onmousedown="startDrag(event, '${appId}')">
+                    <div class="flex items-center gap-2 text-sm text-gray-600 font-medium">
+                        <i class="${iconClass}"></i> ${title}
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="minimizeWindow('${appId}')" class="w-3 h-3 rounded-full bg-yellow-400 hover:bg-yellow-500"></button>
+                        <button onclick="maximizeWindow('${appId}')" class="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600"></button>
+                        <button onclick="closeWindow('${appId}')" class="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600"></button>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-hidden relative bg-white rounded-b-lg">
+                    ${template.innerHTML}
+                </div>
+            `;
+
+            // Append
+            container.appendChild(win);
+            
+            // Register
+            windows[appId] = {
+                element: win,
+                maximized: false,
+                prevStyle: {}
+            };
+
+            // Setup Terminal Logic if needed
+            if (appId === 'terminal') {
+                setupTerminal();
+            }
+
+            // Taskbar Item
+            addToTaskbar(appId);
+            
+            // Focus
+            win.addEventListener('mousedown', () => focusWindow(appId));
+        }
+
+        function closeWindow(appId) {
+            const win = windows[appId];
+            if (win) {
+                win.element.remove();
+                delete windows[appId];
+                removeFromTaskbar(appId);
+            }
+        }
+
+        function minimizeWindow(appId) {
+            const win = windows[appId];
+            if (win) {
+                win.element.style.display = 'none';
+                updateTaskbar(appId, false);
+            }
+        }
+
+        function maximizeWindow(appId) {
+            const winObj = windows[appId];
+            const win = winObj.element;
+            
+            if (!winObj.maximized) {
+                // Save state
+                winObj.prevStyle = {
+                    top: win.style.top,
+                    left: win.style.left,
+                    width: win.style.width,
+                    height: win.style.height
+                };
+                win.classList.add('maximized');
+                winObj.maximized = true;
+            } else {
+                // Restore
+                win.classList.remove('maximized');
+                win.style.top = winObj.prevStyle.top;
+                win.style.left = winObj.prevStyle.left;
+                win.style.width = winObj.prevStyle.width;
+                win.style.height = winObj.prevStyle.height;
+                winObj.maximized = false;
+            }
+        }
+
+        function focusWindow(appId) {
+            const win = windows[appId];
+            if (win) {
+                win.element.style.zIndex = ++highestZIndex;
+                updateTaskbar(appId, true);
+            }
+        }
+
+        // --- Dragging Logic ---
+        let isDragging = false;
+        let dragOffset = { x: 0, y: 0 };
+        let currentDragWin = null;
+
+        function startDrag(e, appId) {
+            if (e.target.closest('button')) return; // Don't drag if clicking buttons
+            if (windows[appId].maximized) return; // Don't drag if maximized
+
+            isDragging = true;
+            currentDragWin = windows[appId].element;
+            focusWindow(appId);
+
+            const rect = currentDragWin.getBoundingClientRect();
+            dragOffset.x = e.clientX - rect.left;
+            dragOffset.y = e.clientY - rect.top;
+
+            // Add global listeners
+            document.addEventListener('mousemove', onDrag);
+            document.addEventListener('mouseup', stopDrag);
+        }
+
+        function onDrag(e) {
+            if (!isDragging || !currentDragWin) return;
+            
+            // Boundary checks
+            let x = e.clientX - dragOffset.x;
+            let y = e.clientY - dragOffset.y;
+            
+            // Basic constraints
+            if (y < 0) y = 0;
+            
+            currentDragWin.style.left = `${x}px`;
+            currentDragWin.style.top = `${y}px`;
+        }
+
+        function stopDrag() {
+            isDragging = false;
+            currentDragWin = null;
+            document.removeEventListener('mousemove', onDrag);
+            document.removeEventListener('mouseup', stopDrag);
+        }
+
+        // --- Taskbar Logic ---
+        function addToTaskbar(appId) {
+            const bar = document.getElementById('taskbar-apps');
+            const btn = document.createElement('div');
+            btn.className = `taskbar-item p-2 rounded mx-1 cursor-pointer active text-white`;
+            btn.id = `tb-${appId}`;
+            btn.innerHTML = `<i class="${getIconForApp(appId)} text-xl"></i>`;
+            btn.onclick = () => {
+                const win = windows[appId];
+                if (win.element.style.display === 'none') {
+                    win.element.style.display = 'flex';
+                    focusWindow(appId);
+                } else if (parseInt(win.element.style.zIndex) !== highestZIndex) {
+                    focusWindow(appId);
+                } else {
+                    minimizeWindow(appId);
+                }
+            };
+            bar.appendChild(btn);
+        }
+
+        function removeFromTaskbar(appId) {
+            const btn = document.getElementById(`tb-${appId}`);
+            if (btn) btn.remove();
+        }
+
+        function updateTaskbar(appId, isActive) {
+            const btn = document.getElementById(`tb-${appId}`);
+            if (btn) {
+                if (isActive) btn.classList.add('active');
+                else btn.classList.remove('active');
+            }
+        }
+
+        function toggleStartMenu() {
+            const menu = document.getElementById('start-menu');
+            if (menu.classList.contains('closed')) {
+                menu.classList.remove('closed');
+                menu.classList.remove('hidden');
+            } else {
+                menu.classList.add('closed');
+                setTimeout(() => menu.classList.add('hidden'), 200);
+            }
+        }
+
+        // Close start menu if clicked outside
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('start-menu');
+            const btn = document.querySelector('button[onclick="toggleStartMenu()"]');
+            if (!menu.contains(e.target) && !btn.contains(e.target) && !menu.classList.contains('closed')) {
+                toggleStartMenu();
+            }
+        });
+
+        // --- Utils ---
+        function getIconForApp(appId) {
+            const map = {
+                'about': 'fas fa-user',
+                'projects': 'fas fa-folder',
+                'terminal': 'fas fa-terminal',
+                'contact': 'fas fa-envelope',
+                'browser': 'fas fa-globe'
+            };
+            return map[appId] || 'fas fa-window-maximize';
+        }
+
+        // --- Clock ---
+        function updateClock() {
+            const now = new Date();
+            const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const date = now.toLocaleDateString();
+            document.getElementById('time').innerText = time;
+            document.getElementById('date').innerText = date;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // --- Terminal Simulator ---
+        const fileSystem = {
+            'about.txt': "Hi! I'm John, a Python Developer passionate about clean code.",
+            'projects.py': "def get_projects():\n    return ['Scraper', 'E-Com', 'Chatbot']",
+            'contact.info': "Email: john@example.com\nGithub: @johndoe",
+            'skills.json': "['Python', 'Django', 'React', 'Linux']"
+        };
+
+        function setupTerminal() {
+            const input = document.getElementById('term-input');
+            const output = document.getElementById('terminal-output');
+            
+            if (!input) return; // Wait for DOM
+
+            input.onkeydown = function(e) {
+                if (e.key === 'Enter') {
+                    const cmd = this.value.trim();
+                    printLine(`➜ ~ ${cmd}`, 'text-white mb-1');
+                    processCommand(cmd, output);
+                    this.value = '';
+                    // Scroll to bottom
+                    output.parentElement.scrollTop = output.parentElement.scrollHeight;
+                }
+            };
+            
+            input.focus();
+        }
+
+        function printLine(text, className = 'text-gray-300') {
+            const output = document.getElementById('terminal-output');
+            const div = document.createElement('div');
+            div.className = className;
+            div.textContent = text;
+            output.appendChild(div);
+        }
+
+        function processCommand(cmd, output) {
+            const args = cmd.split(' ');
+            const command = args[0].toLowerCase();
+
+            switch (command) {
+                case 'help':
+                    printLine('Available commands:');
+                    printLine('  ls              List files');
+                    printLine('  clear           Clear terminal');
+                    printLine('  whoami          Display user');
+                    break;
+                case 'ls':
+                    printLine(Object.keys(fileSystem).join('   '), 'text-blue-400 font-bold');
+                    break;
+                case 'cat':
+                    if (args[1] && fileSystem[args[1]]) {
+                        printLine(fileSystem[args[1]]);
+                    } else {
+                        printLine(`cat: ${args[1] || ''}: No such file`, 'text-red-400');
+                    }
+                    break;
+                case 'python':
+                case 'python3':
+                    if (args[1] === 'projects.py') {
+                        printLine('Running projects.py...');
+                        setTimeout(() => {
+                            printLine("['Scraper', 'E-Com', 'Chatbot']", 'text-green-400');
+                        }, 500);
+                    } else if (args[1]) {
+                        printLine(`python: can't open file '${args[1]}': [Errno 2] No such file`, 'text-red-400');
+                    } else {
+                        printLine('Python 3.9.5 Interactive Shell. Type exit() to quit.');
+                    }
+                    break;
+                case 'clear':
+                    output.innerHTML = '';
+                    break;
+                case 'whoami':
+                    printLine('root (just kidding, it\'s a portfolio visitor)', 'text-yellow-300');
+                    break;
+                case 'open':
+                    if (['about', 'projects', 'contact', 'browser'].includes(args[1])) {
+                        printLine(`Opening ${args[1]}...`);
+                        openWindow(args[1]);
+                    } else {
+                         printLine(`App '${args[1]}' not found.`, 'text-red-400');
+                    }
+                    break;
+                case '':
+                    break;
+                default:
+                    printLine(`command not found: ${command}`, 'text-red-400');
+            }
+        }
+
+        // --- Google Search Logic ---
+        function googleSearch() {
+            const query = document.getElementById('google-search-input').value;
+            if (query) {
+                window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+            }
+        }
+
+        // --- Contact Form Handler (EmailJS Version) ---
+        async function handleContactSubmit(e) {
+            e.preventDefault();
+            const form = e.target;
+            const btn = form.querySelector('button');
+            const originalText = btn.innerText;
+
+            // ---------------------------------------------------------
+            // EMAILJS CONFIGURATION
+            // 1. Go to https://www.emailjs.com/ and create an account.
+            // 2. Create a "Service" (e.g., connect Gmail).
+            // 3. Create a "Template" with variables {{email}} and {{message}}.
+            // 4. Get your keys from Account > API Keys.
+            
+            const PUBLIC_KEY = "9xx7i1N0xP5ECbuIN"; 
+            const SERVICE_ID = "service_8046"; 
+            const TEMPLATE_ID = "template_044nix8"; 
+            // ---------------------------------------------------------
+            
+            // Visual Feedback (Loading)
+            btn.innerText = 'Sending...';
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+            try {
+                if (PUBLIC_KEY === "YOUR_PUBLIC_KEY") {
+                    // Simulation Mode if keys aren't set
+                    console.log("Simulation Mode: EmailJS keys not set.");
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    alert("Simulation: Message 'sent'! (Configure EmailJS keys in the code to make it real).");
+                    form.reset();
+                } else {
+                    // Real Sending
+                    // Initialize EmailJS
+                    emailjs.init(PUBLIC_KEY);
+                    
+                    const response = await emailjs.sendForm(SERVICE_ID, TEMPLATE_ID, form);
+                    
+                    if (response.status === 200) {
+                        alert("Message sent successfully!");
+                        form.reset();
+                    } else {
+                        alert("Failed to send message. Status: " + response.status);
+                    }
+                }
+            } catch (error) {
+                console.error('EmailJS Error:', error);
+                alert("Failed to send: " + JSON.stringify(error));
+            } finally {
+                // Restore Button
+                btn.innerText = originalText;
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        // Start
+        window.onload = runBootSequence;
+
+    </script>
+</body>
+</html>
